@@ -1,28 +1,42 @@
 import React from 'react';
 import ListItem from './ListItem'
 import NewItem from './NewItem';
+import {getAllTasks} from './api/TodoApi';
+
 class TodoList extends React.Component{
     constructor(props){
         super(props);
-        this.state = {
-            todoList:[
-                {content: 'React practice', done: true},
-                {content: 'game time', done: false}
-            ]
-        };
+        this.state = {todoList: []};
+        this.id = -1;
     }
-    addNewItem = (newItemContent) => {
-        const newList = [...this.state.todoList, {content: newItemContent, done:false}];
-        this.setState({todoList: newList});
+    componentWillMount(){
+        this.loadTasks();
+    }
+
+    loadTasks = async() => {
+        const tasks = await getAllTasks();
+        // const itemList = [{content: "play", done: false}, {content:"hello", done:false}];
+        const itemList = await tasks.map(task => ({id: task.id, content: task.content}));
+        await this.setState((prevState) => {
+            const state = prevState;
+            state.todoList = [];
+            return state;
+        });
+        await this.setState((prevState) => {
+            const state = prevState;
+            state.todoList = itemList;
+            return state;
+        });
     }
 
     render(){
         return (
-            <div>
+            <div id="todo-list">
                 {
-                    this.state.todoList.map(item => <ListItem item={item}/>)
+                    this.state.todoList.map((item) => <ListItem item={item} reloadTasks = {this.loadTasks}/>)
                 }
-                <NewItem addItem = {this.addNewItem}/>
+                <NewItem reloadTasks = {this.loadTasks}/>
+                {/*<button onClick={this.loadTasks}>刷新</button>*/}
             </div>
           );
     }
